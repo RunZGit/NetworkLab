@@ -3,8 +3,8 @@
 import socket               # Import socket module
 
 s = socket.socket()         # Create a socket object
-host = 'localhost' # Get local machine name
-port = 3000                # Reserve a port for your service.
+host = 'localhost'  		# Get local machine name
+port = 3000                	# Reserve a port for your service.
 
 s.connect((host, port))
 
