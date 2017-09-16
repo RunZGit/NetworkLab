@@ -2,6 +2,7 @@
 
 from abc import ABCMeta, abstractmethod
 import socket, sys, time, os, stat
+import threading
 
 DEFAULT_HOST = '127.0.0.1'
 DEFAULT_CONNECTIONS = 5
@@ -162,6 +163,19 @@ class RequestHandler(object):
         return content
 
 
+class myThread (threading.Thread):
+    def __init__(self, cSocket, address):
+        threading.Thread.__init__(self)
+        self.cSocket = cSocket
+        self.ip = str(address[0])
+        self.port = str(address[1])
+
+    def run(self):
+        print "Starting " + self.ip + ':'+self.port
+        requestHandler = RequestHandler(self.cSocket)
+        requestHandler.handleRequest()
+        print "Exiting " + self.ip + ':'+self.port
+
 def main(port):
     # Before run multithread! Learn how to kill it first!
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -171,11 +185,9 @@ def main(port):
     while True:
         try:
             (cSocket, address) = serversocket.accept()
-            # ct = client_thread(cSocket)
-            # ct.run()
-            print("Received connection from: ",address)
-            requestHandler = RequestHandler(cSocket)
-            requestHandler.handleRequest()
+            th = myThread(cSocket, address)
+            th.start()
+            
         except KeyboardInterrupt:
             print '\rBye bye!'
             serversocket.close()
