@@ -22,7 +22,7 @@ class Response(object):
     def __str__(self):
         response =  "{0} {1} {2}\r\n".format(self.version, self.status, self.message)
         for key in self.config:
-            response+= "{0}: {1}\r\n"
+            response+= "{0}: {1}\r\n".format(key, self.config[key])
         response+="\n" + self.body
         return response
 
@@ -173,10 +173,11 @@ def main(port):
             (cSocket, address) = serversocket.accept()
             # ct = client_thread(cSocket)
             # ct.run()
+            print("Received connection from: ",address)
             requestHandler = RequestHandler(cSocket)
             requestHandler.handleRequest()
         except KeyboardInterrupt:
-            print '\rBye bye!\n'
+            print '\rBye bye!'
             serversocket.close()
             sys.exit()
 
