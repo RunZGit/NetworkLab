@@ -1,5 +1,5 @@
 #!/usr/bin/python           # This is client.py file
-import socket, sys, time, os.path
+import socket, sys, time, os, stat
 
 DEFAULT_BUFFER_SIZE = 1024
 DEFAULT_HOST = '127.0.0.1'
@@ -57,7 +57,7 @@ def handleGetRequest(cSocket, path):
 
 		if path.endswith(".html"):
 			http_response+= "Content-Type: text/html\r\n"
-		elif path.endswith(".jpg"):
+		elif path[(path.rfind('.')+1):] in ['jpg','jpeg','png']:
 			http_response+= "Content-Type: image/gif\r\n"
 		http_response += 'Last-Modified: ' + time.ctime(os.path.getmtime(path)) + '\r\n'
 		http_response += 'Content-Length: ' + str(len(content)) +'\r\n\n'
@@ -72,12 +72,18 @@ def handleBadRequest(cSocket):
 
 	pass
 
+def hasPermissionToRead(filePath):
+	# Make sure checks file exists before read
+	st = os.stat(filepath)
+  	return bool(st.st_mode & stat.S_IRWXO)
+
+def hasFile(filePath):
+	return os.path.exists(filePath)
+
 def loadFile(filePath):
-	if os.path.exists(filePath):
-		with open(filePath, 'r') as f:
-			content = f.read()
-		return content
-	return False
+	with open(filePath, 'r') as f:
+		content = f.read()
+	return content
 
 if __name__ =='__main__':
 	args = sys.argv[1:]
