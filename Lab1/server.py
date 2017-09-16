@@ -140,14 +140,18 @@ class RequestHandler(object):
         return builder.get_result()
 
     def parseRequest(self):
-        request = self.cSocket.recv(self.default_buffer_size)
-        request = request.splitlines()[0]
-        request = request.rstrip('\r\n')
-        (requestType, filePath, _) = request.split()
-        if filePath == "/":
-            filePath = "/index.html"
-        filePath = DEFAULT_FILE_LOCATIONS+filePath
-        return (requestType, filePath)
+        try:
+            request = self.cSocket.recv(self.default_buffer_size)
+            request = request.splitlines()[0]
+            request = request.rstrip('\r\n')
+            (requestType, filePath, _) = request.split()
+            if filePath == "/":
+                filePath = "/index.html"
+            filePath = DEFAULT_FILE_LOCATIONS+filePath
+            return (requestType, filePath)
+        except Exception:
+            return ('UNKNOWN', '')
+        
 
     def hasPermissionToRead(self, filePath):
         # Make sure checks file exists before read
@@ -176,10 +180,17 @@ class myThread (threading.Thread):
         requestHandler.handleRequest()
         print "Exiting " + self.ip + ':'+self.port
 
-def main(port):
+def main(port, debug_mode):
     # Before run multithread! Learn how to kill it first!
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    serversocket.bind((DEFAULT_HOST, port))
+    if debug_mode:
+        host = DEFAULT_HOST
+    else:
+        host = socket.gethostname()
+
+    print "Server is starting at http://"+str(host)+":"+str(port)
+
+    serversocket.bind((host, port))
     serversocket.listen(DEFAULT_CONNECTIONS)
 
     while True:
@@ -194,13 +205,16 @@ def main(port):
             sys.exit()
 
 
-
 if __name__ =='__main__':
     args = sys.argv[1:]
-    if not len(args) == 1 or not args[0].isdigit():
-        print 'Command not supported. \nExample: python server.py 1234\n'
+    debug_mode = False
+    if len(args) == 1 and not args[0].isdigit():
+        print 'Command not supported. \nExample: python server.py 1234\n\r   python server.py 1234 True'
         sys.exit()
-    main(int(args[0]))
+    if len(args) == 2:
+        debug_mode = bool(args[1] == 'True')
+
+    main(int(args[0]), debug_mode)
 
 
 
