@@ -2,8 +2,8 @@
 
 ## Assumptions:
 
-Required: python2.7
-HTTP standard: 1.0   
+Required: python2.7    
+HTTP standard: 1.0    
 
 ### Server
 * All the files are stored in the ./Upload directory. 
