@@ -1,3 +1,4 @@
 *.mp3
 Lab1/Download/*
 Lab1/Upload/*
+*.DS_Store

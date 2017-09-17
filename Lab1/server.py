@@ -79,18 +79,6 @@ class ResponseBuilder(Builder):
         return self.response
 
 
-# class ResponseBuilderDirector(object):
-#     @staticmethod
-#     def construct(request):
-
-#         builder = ResponseBuilder()
-#         builder.set_status(status)
-#         builder.set_message(message)
-
-#         return builder.get_result()
-
-
-
 class RequestHandler(object):
     def __init__(self, cSocket, default_buffer_size = 1024):
         self.cSocket = cSocket
@@ -133,6 +121,7 @@ class RequestHandler(object):
                     builder.set_status('302')
                     builder.set_message('FOUND')
                 del content
+        # For unknown requests.
         else:
             builder.set_status('501')
             builder.set_message('Not Implemented')
@@ -200,7 +189,7 @@ def main(port, debug_mode):
             th.start()
             
         except KeyboardInterrupt:
-            print '\rBye bye!'
+            print '\rBye bye!\n'
             serversocket.close()
             sys.exit()
 
@@ -214,7 +203,10 @@ if __name__ =='__main__':
     if len(args) == 2:
         debug_mode = bool(args[1] == 'True')
 
-    main(int(args[0]), debug_mode)
+    try:
+        main(int(args[0]), debug_mode)
+    except Exception:
+        print 'An exception has occurred. \n\rFor more information, please run in debug_mode.\n'
 
 
 
