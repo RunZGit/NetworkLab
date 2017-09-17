@@ -1,2 +1,2 @@
 # NetworkLab
-Lab 1: Web Server
+Lab 1: [Web Server](https://github.com/RunZGit/NetworkLab/tree/master/Lab1)  
