@@ -103,7 +103,7 @@ def main(args):
 if __name__ =='__main__':
 	args = sys.argv[1:]
 	# Assume only 4 inputs are allowed, they are host, port, file_path, and GET/HEAD method
-	if not len(args) == 4:
+	if not (len(args) == 4 or len(args) == 5): 
 		print "Cannot understand the request~"
 	# main(args)
 	try:
