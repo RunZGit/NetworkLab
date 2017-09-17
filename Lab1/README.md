@@ -18,7 +18,7 @@ Client only supports GET and HEAD methods.
 If GET method succeed, it will only store the body of the response.
 Else and other methods will store the entire response to the download folder under the request name.
 By default, the client will only throw error message 'Your input has problems!'. If you believe that is not the case, please remove the try catch clause surronding the main(args) call.
-
+If requested file is large, user has the option to check the downloading progress. Simply add 'True' at the end of the command will turn this option on.
 
 ## Commands for server.py
 ```bash
@@ -29,7 +29,7 @@ python server.py [port] [debug_mode=False]
 
 ## Commands for client.py
 ```bash
-./client.py [host] [port] [file_location] [Method=GET/HEAD]
+./client.py [host] [port] [file_location] [Method=GET/HEAD] [Optional: verbose=True/False]
 # Or
-python client.py [host] [port] [file_location] [Method=GET/HEAD]
+python client.py [host] [port] [file_location] [Method=GET/HEAD] [Optional: verbose=True/False]
 ```

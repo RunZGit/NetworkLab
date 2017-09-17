@@ -4,6 +4,7 @@ import socket,sys
 
 DEFAULT_HTTP_VERSION = 'HTTP/1.0'
 DEFAULT_BUFFER_SIZE = 1024
+DEFAULT_LARGE_BUFFER_TRHESHOLD = 1024 * 100
 DEFAULT_DOWNLOAD_FOLDER = './Download'
 
 def main(args):
@@ -12,6 +13,9 @@ def main(args):
 	port = int(args[1])
 	filePath = args[2]
 	request_method = args[3]
+	verbose = False
+	if len(args) == 5:
+		verbose = bool(args[4] == 'True')
 
 	# Convert '/' to /index.html
 	if filePath == '/':
@@ -28,9 +32,6 @@ def main(args):
 	s.connect((host, port))
 	s.sendall(request)
 
-	# prepare the file to write
-	f = open(localFileName, "w")
-
 	# Buffer the responce
 	l = s.recv(DEFAULT_BUFFER_SIZE)
 
@@ -39,50 +40,76 @@ def main(args):
 	responce = responce.strip()
 	status = responce.split()[1]
 
-	# If get request, only retrive the body
-	if request_method == 'GET' and status == '200':
-		# Looking for the starting symbol of the body
-		body_start = l.find('\r\n\n')
-		# If have not seen body, keep reading until seen
-		haveSeenBody = False
-		
+	# Only responce 200 has response body, else we can just print the meta
+	if status != '200':
 		while l:
-			# If have seen the body tag, the input has to be body, just write to file
-			if haveSeenBody:
-				f.write(l)
-			# If have not read body yet, but found the body starting tag
-			elif not haveSeenBody and body_start != -1:
-				# find the starting of the responce body
-				l = l[body_start:].lstrip()
-				f.write(l)
-				haveSeenBody = True
-
+			print l
 			l = s.recv(DEFAULT_BUFFER_SIZE)
-			body_start = l.find('\r\n\n')
-	# If HEAD request, retrive everything
-
+	#If it is 200 response
 	else:
-		# Write to file until the socket is empty
-		print l
-		while l:
-			f.write(l)
+	# Extract meta data:
+		meta = ''
+		end_of_meta = l.find('\r\n\n')
+
+		#Append meta until we have seen the body
+		while l and end_of_meta == -1:
+			meta+=l
 			l = s.recv(DEFAULT_BUFFER_SIZE)
+			end_of_meta = l.find('\r\n\n')
+		if end_of_meta == -1:
+			print meta + '\n\r'
+		#Found body
+		if end_of_meta != -1:
+			#Append the rest of the meta
+			meta += l[:end_of_meta]
+			#Convert the l to body
+			print meta + '\n\r'
+			
+			#Prepare buffer
+			total_length = 0
+			lengthKeyword= 'Content-Length:'
+			buffer_size = DEFAULT_BUFFER_SIZE
+
+			for line in meta.splitlines():
+				if line.startswith(lengthKeyword):
+					total_length = int(line[(line.find(lengthKeyword)+len(lengthKeyword)):])
+					break
+
+			#Control the max buffer
+			if total_length > DEFAULT_LARGE_BUFFER_TRHESHOLD:
+				buffer_size = min(max(total_length/20, DEFAULT_BUFFER_SIZE), DEFAULT_LARGE_BUFFER_TRHESHOLD)
+
+			l = l[end_of_meta:].lstrip()
+			read_bytes = len(l)
+			#Seen body, now write to file
+			f = open(localFileName, "w")
+			while l:
+				f.write(l)
+				if verbose:
+					output = 'Progress: {0}/{1} '.format(str(read_bytes), str(int(total_length)))
+					sys.stdout.write('\r'+output)
+
+				l = s.recv(min(buffer_size, max(total_length-read_bytes, DEFAULT_BUFFER_SIZE)))
+				read_bytes += len(l)
+			#close the file
+			f.close()
+			if verbose:
+				print '\n\r'
 
 	# Close socket
 	s.close()
-	# Close file
-	f.close()
+
 
 if __name__ =='__main__':
 	args = sys.argv[1:]
 	# Assume only 4 inputs are allowed, they are host, port, file_path, and GET/HEAD method
 	if not len(args) == 4:
 		print "Cannot understand the request~"
-
+	# main(args)
 	try:
 		main(args)
 	except Exception:
-		print "Your input has problems!"
+		print "Your input has problems! Please reference README"
 
 
 
