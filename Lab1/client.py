@@ -41,7 +41,23 @@ def main(args):
 	status = responce.split()[1]
 
 	# Only responce 200 has response body, else we can just print the meta
-	if status != '200':
+	if status == '302' and request_method == 'HEAD':
+
+		fileExtesionIndex = filePath.rfind('.')
+		# if fileExtesionIndex == -1:
+		# 	fileExtesionIndex = len(filePath)
+
+		localFileName = DEFAULT_DOWNLOAD_FOLDER+filePath[filePath.rfind('/'):fileExtesionIndex]+'_HEAD'
+		# +filePath[fileExtesionIndex:]
+		
+		f = open(localFileName, "w")
+		while l:
+			print l
+			f.write(l)
+			l = s.recv(DEFAULT_BUFFER_SIZE)
+		f.close()
+
+	elif status != '200':
 		while l:
 			print l
 			l = s.recv(DEFAULT_BUFFER_SIZE)
