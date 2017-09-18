@@ -145,7 +145,7 @@ class RequestHandler(object):
     def hasPermissionToRead(self, filePath):
         # Make sure checks file exists before read
         st = os.stat(filePath)
-        return bool(st.st_mode & stat.S_IRWXO)
+        return bool(st.st_mode & stat.S_IRWXO & stat.S_IROTH)
 
     def hasFile(self, filePath):
         return os.path.exists(filePath)

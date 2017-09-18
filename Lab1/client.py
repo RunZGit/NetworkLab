@@ -47,7 +47,7 @@ def main(args):
 		# if fileExtesionIndex == -1:
 		# 	fileExtesionIndex = len(filePath)
 
-		localFileName = DEFAULT_DOWNLOAD_FOLDER+filePath[filePath.rfind('/'):fileExtesionIndex]+'_HEAD'
+		localFileName = DEFAULT_DOWNLOAD_FOLDER+filePath[filePath.rfind('/'):fileExtesionIndex]+'_HEAD.txt'
 		# +filePath[fileExtesionIndex:]
 		
 		f = open(localFileName, "w")
