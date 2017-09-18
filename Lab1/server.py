@@ -113,13 +113,12 @@ class RequestHandler(object):
                 builder.add_config("Last-Modified", time.ctime(os.path.getmtime(filePath)))
                 builder.add_config("Content-Length", str(len(content)))
                 
+                builder.set_status('200')
+                builder.set_message('OK')
+
                 if requestType == 'GET':
-                    builder.set_status('200')
-                    builder.set_message('OK')
                     builder.set_body(content)
-                else:
-                    builder.set_status('302')
-                    builder.set_message('FOUND')
+                    
                 del content
         # For unknown requests.
         else:

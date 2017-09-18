@@ -41,7 +41,7 @@ def main(args):
 	status = responce.split()[1]
 
 	# Only responce 200 has response body, else we can just print the meta
-	if status == '302' and request_method == 'HEAD':
+	if status == '200' and request_method == 'HEAD':
 
 		fileExtesionIndex = filePath.rfind('.')
 		# if fileExtesionIndex == -1:
