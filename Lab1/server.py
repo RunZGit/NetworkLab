@@ -106,8 +106,8 @@ class RequestHandler(object):
                 fileType = filePath[(filePath.rfind('.')+1):]
                 if fileType == "html":
                         builder.add_config("Content-Type", "text/html")
-                elif fileType in ['jpg', 'jpeg', 'png']:
-                    builder.add_config("Content-Type", "image/gif")
+                elif fileType in ['jpg', 'jpeg', 'png', "gif"]:
+                    builder.add_config("Content-Type", "image/"+fileType)
 
                 content = self.loadFile(filePath)
                 builder.add_config("Last-Modified", time.ctime(os.path.getmtime(filePath)))
