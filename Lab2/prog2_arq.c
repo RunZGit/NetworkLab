@@ -1,50 +1,49 @@
-#include <stdio.h>
+#include "headers.h"
 
-/* ******************************************************************
- ALTERNATING BIT AND GO-BACK-N NETWORK EMULATOR: VERSION 1.1  J.F.Kurose
+// /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
+  int calculate_checkSum(char* input){
+    // printf("Calculating checksum \n");
+    int i = 0, checksum = 0;
+    for (i=0; i<20; i++)
+        checksum += input[i];
+    return checksum;
+  }
 
-   This code should be used for PA2, unidirectional or bidirectional
-   data transfer protocols (from A to B. Bidirectional transfer of data
-   is for extra credit and is not required).  Network properties:
-   - one way network delay averages five time units (longer if there
-     are other messages in the channel for GBN), but can be larger
-   - packets can be corrupted (either the header or the data portion)
-     or lost, according to user-defined probabilities
-   - packets will be delivered in the order in which they were sent
-     (although some can be lost).
-**********************************************************************/
+  bool is_corrupted(int checksum, char* input){
 
-#define BIDIRECTIONAL 0    /* change to 1 if you're doing extra credit */
-                           /* and write a routine called B_output */
+    return checksum == calculate_checkSum(input);
+  }
 
-/* a "msg" is the data unit passed from layer 5 (teachers code) to layer  */
-/* 4 (students' code).  It contains the data (characters) to be delivered */
-/* to layer 5 via the students transport level protocol entities.         */
-struct msg {
-  char data[20];
-  };
-
-/* a packet is the data unit passed from layer 4 (students code) to layer */
-/* 3 (teachers code).  Note the pre-defined packet structure, which all   */
-/* students must follow. */
-struct pkt {
-   int seqnum;
-   int acknum;
-   int checksum;
-   char payload[20];
-    };
-
-/********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
-
-
-
+  void toggle(int* sequence){
+    *sequence = *sequence == 0 ?  1:0;
+  }
 
 /* called from layer 5, passed the data to be sent to other side */
 A_output(message)
   struct msg message;
 {
-  printf("%s\n", "A output");
-  return NULL;
+  printf("%s %s\n", "A output: ", message.data);
+  //Do nothing is currently is waiting for acks
+  if (is_waiting_A) {
+    return;
+  }
+
+  int i;
+  struct pkt *mypktptr;
+  
+  mypktptr = (struct pkt *)malloc(sizeof(struct pkt));
+  mypktptr->seqnum = sequence_A;
+  mypktptr->acknum = ack_A;
+  mypktptr->checksum = calculate_checkSum(message.data);
+  for (i=0; i<20; i++)
+    mypktptr->payload[i] = message.data[i];
+  printf("Checksum is %d\n", mypktptr->checksum);
+  toggle(&sequence_A);
+  // memcpy(&mypktptr, &prev_packet_A, sizeof(struct pkt));
+  prev_packet_A = mypktptr;
+  tolayer3(0, *mypktptr);
+  // free(mypktptr);
+  
 }
 
 B_output(message)  /* need be completed only for extra credit */
@@ -70,7 +69,12 @@ A_timerinterrupt()
 /* entity A routines are called. You can use it to do any initialization */
 A_init()
 {
-  printf("%s\n", "Initializing A");
+  printf("%s\n", "A initialization");
+  sequence_A = 0;
+  ack_A = 0;
+  is_waiting_A = false;
+  prev_packet_A = (struct pkt *)malloc(sizeof(struct pkt));
+
 }
 
 
@@ -80,8 +84,27 @@ A_init()
 B_input(packet)
   struct pkt packet;
 {
-  printf("%s\n", "B input layer");
-  return NULL;
+
+  printf("%s%s\n", "B input layer: ", packet.payload);
+
+  struct pkt *mypktptr;
+
+  if (packet.acknum == sequence_B || is_corrupted(packet.checksum, packet.payload)) {
+    // send the current ack
+    tolayer3(1, prev_packet_B);
+
+  }
+  else {
+    mypktptr = (struct pkt *)malloc(sizeof(struct pkt));
+    mypktptr->seqnum = packet.seqnum;
+    mypktptr->acknum = packet.acknum;
+    prev_packet_B = mypktptr;
+    tolayer3(1, mypktptr);
+    toggle(&sequence_B);
+    // free(mypktptr);
+  }
+ 
+
 }
 
 /* called when B's timer goes off */
@@ -95,6 +118,9 @@ B_timerinterrupt()
 B_init()
 {
   printf("%s\n", "B initialization");
+  sequence_B = 1;
+  // ack_B = 1;
+  prev_packet_B = (struct pkt *)malloc(sizeof(struct pkt));
 }
 
 
