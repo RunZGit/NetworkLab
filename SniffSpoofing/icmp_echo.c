@@ -77,7 +77,7 @@ int main(int argc, char **argv){
         ip->ip_tos = 0;
         ip->ip_len = htons(BUFFER_SIZE);
         // What is this?
-        ip->up_id = 0;
+        ip->ip_id = 0;
         ip->ip_off = 0;
         ip->ip_ttl = htons(255);
         //Uper layer protocol number
@@ -85,15 +85,14 @@ int main(int argc, char **argv){
         //Set to 0 before calculating the checksum
         ip->ip_sum = 0;
         //This can go wrong
-        ip->ip_sum = htons(in_cksum(ip, sizeof(*ip)));
-
+        ip->ip_sum = htons(in_cksum((unsigned short *)ip, sizeof(struct ip)));
 
         icmp->type = ICMP_ECHO;
         icmp->code = 0;
         icmp->icmp_id = htons(1234);
 
-        icmp->icmp_checksum = 0;
-        icmp->icmp_checksum = htons(in_cksum(icmp, sizeof(*icmp)));
+        icmp->checksum = 0;
+        icmp->checksum = htons(in_cksum((unsigned short *)icmp, sizeof(struct icmphdr)));
 
 
 		if(sendto(sd, buffer, ip->ip_len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
