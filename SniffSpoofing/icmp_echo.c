@@ -16,11 +16,11 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
 #include <resolv.h>
 #include <netdb.h>
 #include <fcntl.h>
-#include <getopt.h>
 
 #define BUFFER_SIZE 1024
 #define true 1
@@ -28,12 +28,14 @@
 
 static int verbose_flag = false;
 
+unsigned short in_cksum(unsigned short *addr, int len);
+
 int main(int argc, char **argv){
 	int i, sd;
 	struct sockaddr_in sin;
 	int repeats = 1;
 	char buffer[BUFFER_SIZE];
-	struct ip *ip = (struct ip *)buf;
+	struct ip *ip = (struct ip *)buffer;
   	struct icmphdr *icmp = (struct icmphdr *)(ip + 1);
   	struct hostent *dst_hp;
 	
@@ -47,7 +49,7 @@ int main(int argc, char **argv){
 	}
 
 	for (i = 0; i<repeats; i++){
-		bzero(buf, BUFFER_SIZE);
+		bzero(buffer, BUFFER_SIZE);
 
 		sd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
 		if(sd < 0) {
@@ -56,7 +58,7 @@ int main(int argc, char **argv){
 		sin.sin_family = AF_INET;
 
 		if((ip->ip_src.s_addr = inet_addr(argv[1])) == -1){
-         	perror("Cannot resolve source host", argv[1]);
+         	printf("Cannot resolve source host", argv[1]);
         	exit(1);
      	}
 
