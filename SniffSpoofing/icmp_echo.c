@@ -8,19 +8,23 @@
 **/
 
 #include <stdio.h>
-#include <sys/socket.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netinet/ip_icmp.h>
-#include <arpa/inet.h>
-#include <resolv.h>
 #include <netdb.h>
-#include <fcntl.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+
+#include <netinet/in_systm.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/udp.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/tcp.h>
+
+#include <arpa/inet.h>
 
 #define BUFFER_SIZE 1024
 #define true 1
@@ -74,28 +78,26 @@ int main(int argc, char **argv){
         ip->ip_v = 4;
         //This is the ip header length, 20 bytes-> 5
         ip->ip_hl = 5;
-        ip->ip_tos = 0;
+        ip->ip_tos = 0x0;
         ip->ip_len = htons(BUFFER_SIZE);
         // What is this?
         ip->ip_id = 0;
-        ip->ip_off = 0;
-        ip->ip_ttl = htons(255);
+        ip->ip_off = 0x0;
+        ip->ip_ttl = htons(64);
         //Uper layer protocol number
         ip->ip_p = IPPROTO_ICMP;
         //Set to 0 before calculating the checksum
-        ip->ip_sum = 0;
+        ip->ip_sum = 0x0;
         //This can go wrong
         ip->ip_sum = htons(in_cksum((unsigned short *)ip, sizeof(struct ip)));
 
         icmp->type = ICMP_ECHO;
         icmp->code = 0;
-        icmp->icmp_id = htons(1234);
-
+        // icmp->icmp_id = htons(50179);
         icmp->checksum = 0;
         icmp->checksum = htons(in_cksum((unsigned short *)icmp, sizeof(struct icmphdr)));
 
-
-		if(sendto(sd, buffer, ip->ip_len, 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+		if(sendto(sd, buffer, sizeof(struct iphdr) + sizeof(struct icmphdr), 0, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 			perror("sendto() error");
 			exit(-1);
 		}
@@ -132,6 +134,7 @@ unsigned short in_cksum(unsigned short *addr, int len)
     answer = ~sum;
     return (answer);
 }
+
 
 
 
