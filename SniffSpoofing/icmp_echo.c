@@ -100,7 +100,7 @@ int main(int argc, char **argv){
 			exit(-1);
 		}
 	}
-	close(s);
+	close(sd);
 
 	exit (0);
 }
